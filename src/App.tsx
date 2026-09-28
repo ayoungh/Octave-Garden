@@ -1,0 +1,77 @@
+import { useState } from 'react';
+import { ArrowRight, Check, CheckCheck, ChevronDown, Headphones, Lightbulb, Menu, Music2, Piano, Play, RotateCcw, Settings2, ShieldCheck, Square, Volume2, VolumeX, X } from 'lucide-react';
+import { useStudio } from './useStudio';
+import { firstSteps, songs } from './data/lessons';
+import { noteName } from './lib/types';
+import { PIANO_LOW, PIANO_HIGH } from './lib/pianoRange';
+import { Keyboard } from './components/Keyboard';
+import { Timeline } from './components/Timeline';
+import { Staff } from './components/Staff';
+import { Progress } from './components/Progress';
+import { Setup } from './components/Setup';
+
+export default function App() {
+  const s = useStudio();
+  const [sidebar, setSidebar] = useState(false);
+  const collection = s.lesson.kind === 'song' ? songs : firstSteps;
+  const lessonIndex = collection.findIndex(lesson => lesson.id === s.lesson.id);
+  const guideTargets = s.guideTargets;
+  const names = s.view === 'free' ? s.held.map(note => noteName(note, true)).join(' · ') : '';
+  return <div className="studio-shell">
+    <header className="topbar">
+      <button className="mobile-menu icon-button" aria-label={sidebar ? 'Close lesson menu' : 'Open lesson menu'} onClick={() => setSidebar(!sidebar)}>{sidebar ? <X size={21}/> : <Menu size={21}/>}</button>
+      <a className="wordmark" href="#" onClick={event => { event.preventDefault(); s.changeView('learn'); }}>Octave Garden<span className="wordmark-dot"/></a>
+      <span className="toolbar-divider course-divider"/><div className="course-label">{s.lesson.kind === 'song' ? 'First songs' : 'First steps'} <ChevronDown size={14}/></div>
+      <div className="transport"><button onClick={s.restart} title="Restart this practice"><RotateCcw size={19}/><span>Restart</span></button><button aria-label={s.playing ? 'Stop' : 'Hear it'} onClick={() => void s.demonstrate()} disabled={s.view !== 'learn' || !s.rangeValid || s.audioStatus === 'loading'}>{s.playing ? <Square size={17}/> : <Play size={18} fill="currentColor"/>}<span>{s.playing ? 'Stop' : 'Hear it'}</span></button></div>
+      <div className="tempo-controls"><label className="tempo"><select aria-label="Tempo in beats per minute" value={s.saved.bpm} disabled={s.playing || s.timedRunning} onChange={event => s.patch({ bpm: Number(event.target.value) })}>{[40, 50, 60, 70, 80, 90, 100, 110, 120].map(n => <option key={n} value={n}>{n} BPM</option>)}</select></label><button className="beat-button" role="switch" aria-checked={s.beatOn} aria-label="Metronome" onClick={s.toggleBeat} disabled={s.timedRunning}><span className="metronome-icon">♩</span><span>Beat</span><span className={`switch ${s.beatOn ? 'on' : ''}`}><i/></span></button></div>
+      <span className="toolbar-divider"/><button className="setup-button" aria-label="Keyboard setup" onClick={s.openSetup}><Settings2 size={19}/><span>Keyboard setup</span></button>
+    </header>
+    <aside className={`sidebar ${sidebar ? 'open' : ''}`}>
+      <nav className="main-tabs" aria-label="Studio views">{(['learn', 'free', 'progress'] as const).map(view => <button key={view} className={s.view === view ? 'active' : ''} aria-current={s.view === view ? 'page' : undefined} onClick={() => { s.changeView(view); setSidebar(false); }}>{view === 'free' ? 'Free play' : view === 'learn' ? 'Learn' : 'Progress'}</button>)}</nav>
+      <div className="lesson-sections">{[{ title: 'First steps', items: firstSteps }, { title: 'First songs', items: songs }].map(group => <section key={group.title}><h2>{group.title}</h2><nav className="lesson-list" aria-label={group.title}>{group.items.map((lesson, i) => <button key={lesson.id} className={s.saved.lessonId === lesson.id && s.view === 'learn' ? 'selected' : ''} aria-current={s.saved.lessonId === lesson.id && s.view === 'learn' ? 'step' : undefined} onClick={() => { s.openLesson(lesson.id); setSidebar(false); }}><span className={`lesson-number ${s.saved.completed.includes(lesson.id) ? 'complete' : ''}`}>{s.saved.completed.includes(lesson.id) ? <Check size={16}/> : lesson.kind === 'song' ? <Music2 size={16}/> : i + 1}</span><span>{lesson.title}</span></button>)}</nav></section>)}</div>
+      <div className="sidebar-bottom"><button className="device-status" onClick={s.openSetup}><span className={`status-dot ${s.connectedProfiles.length ? 'connected' : ''}`}/><span>{s.connectedProfiles.length ? 'MIDI connected' : 'On-screen piano'}</span><small>{s.connectedProfiles.length ? `${s.connectedProfiles.length} input${s.connectedProfiles.length > 1 ? 's' : ''}` : 'Connect keys'}</small></button><span className="local-note"><ShieldCheck size={12}/>Your practice stays here.</span><a className="credits-link" href="/credits.html" target="_blank" rel="noreferrer">Credits &amp; licences</a></div>
+    </aside>
+    <main className={`workspace ${s.view === 'progress' ? 'progress-workspace' : s.lesson.kind === 'song' ? 'song-workspace' : ''}`}>
+      {s.storageFailed && <div className="notice" role="alert">Browser storage is unavailable. You can practise, but progress will not survive closing this page.</div>}
+      {s.view === 'progress' ? <Progress saved={s.saved} openLesson={s.openLesson}/> : <>
+        <div className="workspace-heading"><h1>{s.view === 'free' ? 'Make yourself at home' : s.lesson.heading}</h1>{s.view === 'learn' && <nav className="stage-tabs" aria-label="Lesson stage">{(['learn', 'listen', 'try'] as const).map(stage => <button key={stage} className={s.saved.stage === stage ? 'active' : ''} aria-current={s.saved.stage === stage ? 'step' : undefined} onClick={() => s.changeStage(stage)}>{stage === 'try' ? 'Try it' : stage === 'learn' ? 'Learn' : 'Listen'}</button>)}</nav>}{s.view === 'free' && <span className="free-label"><Music2 size={15}/>Just you and the keys</span>}</div>
+        {s.audioStatus !== 'ready' && <div className={`audio-banner ${s.audioStatus === 'error' ? 'error' : ''}`} role="status"><Headphones size={18}/><span>{s.audioStatus === 'error' ? s.audioError : s.audioStatus === 'loading' ? 'Getting the piano ready…' : 'A little sound makes all the difference.'}</span><button onClick={() => void s.enableAudio()} disabled={s.audioStatus === 'loading'}>{s.audioStatus === 'error' ? 'Retry piano' : s.audioStatus === 'loading' ? 'Loading…' : 'Enable piano'}<ArrowRight size={15}/></button></div>}
+        {(s.low < PIANO_LOW || s.high > PIANO_HIGH) && <div className="notice">Some keys are outside the piano range and will be silent. Open Keyboard setup and choose a comfortable piano range.</div>}
+        {s.view === 'learn' && !s.rangeValid && <div className="notice">The selected range needs a C through G within the piano’s A0–C8 range. Choose a comfortable piano octave or <button className="text-button" onClick={s.openSetup}>Recalibrate your keyboard</button> to continue the lessons.</div>}
+        {s.view === 'learn' ? <>
+          <Timeline steps={s.lesson.steps} index={s.demoIndex ?? s.exercise.index} complete={s.exercise.complete} root={s.root}/>
+          <section className={`lesson-content ${s.saved.stage}`}>
+            <p className="lesson-description">{s.lesson.description}</p>
+            {s.lesson.credit && <p className="song-credit">{s.lesson.credit} · Right hand · C–G</p>}
+            {s.saved.stage === 'learn' && <div className="teaching-layout"><div><h2>{s.lesson.explanation[0]}</h2><p>{s.lesson.explanation[1]}</p><p>{s.lesson.explanation[2]}</p><button className="primary lesson-action" onClick={() => s.changeStage('listen')}>Listen first<ArrowRight size={16}/></button><button className="text-button skip-action" onClick={() => s.changeStage('try')}>Ready to try</button></div>{s.lesson.staff && <Staff note={s.step.notes[0]}/>}</div>}
+            {s.saved.stage === 'listen' && <div className="listen-layout"><div className={`listen-symbol ${s.playing ? 'playing' : ''}`}><Music2 size={30}/></div><div><h2>{s.playing ? 'Listen to the shape of the notes' : 'Hear it, then make it yours'}</h2><p>Follow the highlighted keys. Listen as many times as you like.</p><div className="button-row"><button className="primary" onClick={() => void s.demonstrate()}>{s.playing ? <Square size={16}/> : <Play size={16}/>} {s.playing ? 'Stop listening' : 'Play the example'}</button><button onClick={() => s.changeStage('try')}>Let me try<ArrowRight size={16}/></button></div></div></div>}
+            {s.saved.stage === 'try' && <>
+              {s.exercise.complete ? <div className="completion"><div className="completion-icon"><CheckCheck size={28}/></div><div><h2>{s.instruction}</h2><p>{s.exercise.correct} notes practised. {s.exercise.mistakes ? 'Every retry helped you find your way.' : 'You found every note.'}</p><div className="button-row"><button onClick={s.restart}><RotateCcw size={16}/>Play again</button>{s.nextLesson ? <button className="primary" onClick={() => s.openLesson(s.nextLesson!.id)}>{s.nextLesson.kind === 'song' ? 'Next song' : 'Next lesson'}<ArrowRight size={16}/></button> : <button className="primary" onClick={() => s.changeView('progress')}>See your progress<ArrowRight size={16}/></button>}</div></div></div> : <>
+                <h2 className="instruction">{s.countIn ? `Ready in ${s.countIn}…` : s.instruction}</h2><p className="finger-hint">Finger {s.step.fingers?.[0] ?? 1} = {['', 'thumb', 'index finger', 'middle finger', 'ring finger', 'little finger'][s.step.fingers?.[0] ?? 1]}</p>
+                <div className="note-cue-row">{s.lesson.staff ? <Staff note={s.step.notes[0]}/> : <><span className="note-cue">{noteName(s.targets[0])}</span><span className="cue-divider"/><span className="next-notes">{s.exercise.index + 1 < s.lesson.steps.length ? `Next: ${s.lesson.steps.slice(s.exercise.index + 1, s.exercise.index + 3).map(step => noteName(step.notes[0] + s.root - 60)).join(', ')}` : 'One last note. You’ve got this.'}</span></>}</div>
+                {s.lesson.staff && s.root !== 60 && <p className="small muted">Written as middle C–E; played at {noteName(s.root, true)} on your keyboard.</p>}
+                {s.lesson.rhythm && <div className="rhythm-controls"><div className="segmented"><button className={!s.rhythm ? 'active' : ''} onClick={() => s.setRhythm(false)}>At your pace</button><button className={s.rhythm ? 'active' : ''} onClick={() => s.setRhythm(true)}>With a beat</button></div>{s.rhythm && <button className="primary" onClick={() => void s.beginRhythm()} disabled={s.timedRunning}>{s.timedRunning ? 'Follow the click' : 'Start with a count-in'}</button>}</div>}
+                <div className="feedback" aria-live="polite">{s.paused ? <><span>Practice paused. Your place is saved.</span><button className="text-button" onClick={s.rhythm ? () => void s.beginRhythm() : s.resume}>Resume<ArrowRight size={14}/></button></> : s.exercise.message || (s.rhythm ? 'Start the count-in when you’re ready.' : 'Take your time. We’ll wait for the right note.')}</div>
+              </>}
+            </>}
+          </section>
+        </> : <section className="free-content"><span className="eyebrow">NO RIGHT OR WRONG NOTES</span><h2>{names || 'What will you play today?'}</h2><p>Explore a melody, find a chord, or simply enjoy the sound.</p><div className="free-notes"><Piano size={20}/><span>{noteName(s.low, true)} – {noteName(s.high, true)}<span className="muted"> · {s.high - s.low + 1} keys</span></span></div><p className="small muted">Use your LUMI, click the piano, or play a chromatic octave with A W S E D F T G Y H U J K.</p></section>}
+        <div className="keyboard-area">
+          <div className={`range-status ${s.rangeChanged ? 'changed' : ''}`}>
+            <div><span className="range-caption">{s.connectedProfiles.length ? 'CALIBRATED KEYBOARD' : 'ON-SCREEN RANGE'}</span><strong>{s.connectedProfiles.length ? s.connectedProfiles.map(profile => profile.calibrated ? `${noteName(profile.low, true)}–${noteName(profile.high, true)}` : 'Not calibrated').join(' · ') : `${noteName(s.low, true)}–${noteName(s.high, true)}`}</strong></div>
+            <div><span className="range-caption">RECOMMENDED TO START</span><strong>C4–B5 <small>Middle C at the left</small></strong></div>
+            {s.connectedProfiles.some(profile => profile.octaveShift) && <div><span className="range-caption">PIANO SOUND RANGE</span><strong>{noteName(s.low, true)}–{noteName(s.high, true)}</strong></div>}
+            {s.lastNote && <div><span className="range-caption">LAST KEY RECEIVED</span><strong>{noteName(s.lastNote.note, true)}</strong></div>}
+            {s.connectedProfiles.length > 0 && <button className="text-button" onClick={s.openSetup}>Check range<ArrowRight size={14}/></button>}
+          </div>
+          {s.rangeChanged && <div className="range-warning" role="status">Your keyboard sent a note outside its saved range. Its octave may have changed. <button className="text-button" onClick={s.openSetup}>Recalibrate to match the keys</button>.</div>}
+          <Keyboard low={s.low} high={s.high} held={s.held} targets={guideTargets} fingers={s.demoIndex === null ? s.step.fingers : s.lesson.steps[s.demoIndex].fingers} showNames={s.saved.noteNames} onDown={s.screenDown} onUp={s.screenUp}/>
+          <div className="keyboard-options"><label><input type="checkbox" checked={s.saved.noteNames} onChange={event => s.patch({ noteNames: event.target.checked })}/>Note names</label>{s.view === 'learn' && <label><input type="checkbox" checked={s.saved.guidance} onChange={event => s.patch({ guidance: event.target.checked })}/>Key guidance</label>}{s.connectedProfiles.length > 0 && <button className="light-status" onClick={s.openSetup}><Lightbulb size={13}/>{s.lightingError ? 'LUMI lights need attention' : s.allLightsVerified ? (guideTargets.length ? `LUMI lighting ${guideTargets.map(note => noteName(note, true)).join(', ')}` : 'LUMI lights ready') : 'Enable LUMI target lights'}</button>}</div>
+          {s.lightingError && <p className="small muted" role="status">{s.lightingError}</p>}
+        </div>
+      </>}
+    </main>
+    <footer className="bottom-bar"><span>{s.view === 'learn' ? `${s.lesson.kind === 'song' ? 'Song' : 'Lesson'} ${lessonIndex + 1} of ${collection.length}` : s.view === 'free' ? 'Free play · No lessons, just music' : 'A practice worth coming back to'}</span><div className="bottom-controls"><label className="volume-control">{s.saved.volume ? <Volume2 size={19}/> : <VolumeX size={19}/>}<input type="range" min="0" max="100" value={s.saved.volume} aria-label="Piano volume" onChange={event => s.patch({ volume: Number(event.target.value) })} style={{ background: `linear-gradient(to right, #ff7b49 0%, #ff645f ${s.saved.volume}%, #39363b ${s.saved.volume}%, #39363b 100%)` }}/></label><button className="panic-button" onClick={s.allOff}>All notes off</button></div></footer>
+    {s.setup && <Setup testAudio={() => void s.testAudio()} audioStatus={s.audioStatus} restartAudio={() => void s.restartAudio()} close={s.closeSetup} connect={() => void s.connectMidi()} connecting={s.connecting} midiError={s.midiError} access={s.access} profiles={s.saved.devices} change={s.changeProfiles} calibration={s.calibration} calibrate={s.calibrate} calibrationError={s.calibrationError} lastNote={s.lastNote} test={s.lightTest} testLight={s.testLight} confirmLight={s.confirmLight} verified={s.verified}/>}
+  </div>;
+}

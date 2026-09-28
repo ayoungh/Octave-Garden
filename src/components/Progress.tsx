@@ -1,0 +1,11 @@
+import { ArrowUpRight, Check, Music2 } from 'lucide-react';
+import { lessons, firstSteps, songs, lessonById } from '../data/lessons';
+import type { SavedState } from '../lib/types';
+export function Progress({ saved, openLesson }: { saved: SavedState; openLesson: (id: string) => void }) {
+  return <section className="progress-view"><div className="view-heading"><span className="eyebrow">ONE NOTE AT A TIME</span><h1>Your progress</h1><p>Little moments at the piano add up.</p></div>
+    <div className="progress-overview"><div><strong>{saved.completed.length}<span> / {lessons.length}</span></strong><p>lessons and songs explored</p></div><div><strong>{saved.sessions.length}</strong><p>practices completed</p></div><div className="progress-track"><span style={{ width: `${saved.completed.length / lessons.length * 100}%` }}/></div></div>
+    {[{ title: 'Your first steps', items: firstSteps }, { title: 'Your first songs', items: songs }].map(group => <div key={group.title}><h2>{group.title}</h2><div className="progress-lessons">{group.items.map((lesson, i) => <button key={lesson.id} onClick={() => openLesson(lesson.id)}><span className={`lesson-number ${saved.completed.includes(lesson.id) ? 'complete' : ''}`}>{saved.completed.includes(lesson.id) ? <Check size={17}/> : lesson.kind === 'song' ? <Music2 size={17}/> : i + 1}</span><span><strong>{lesson.title}</strong><small>{saved.completed.includes(lesson.id) ? 'Practise again' : 'Ready when you are'}</small></span><ArrowUpRight size={18}/></button>)}</div></div>)}
+    <h2>Recent practice</h2>{saved.sessions.length ? <div className="session-list">{saved.sessions.slice(-5).reverse().map((session, i) => <div className="session-row" key={`${session.date}-${i}`}><Music2 size={18}/><div><strong>{lessonById(session.lessonId).title}</strong><small>{new Date(session.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} · {session.mode === 'rhythm' ? 'With a beat' : 'At your pace'}</small></div><span>{session.correct} notes practised</span></div>)}</div> : <p className="empty-progress">Your first completed practice will appear here. Take your time.</p>}
+    <p className="privacy-note">Saved only in this browser on this laptop. Clearing site data clears your progress.</p>
+  </section>;
+}
