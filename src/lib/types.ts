@@ -1,5 +1,5 @@
 export type Stage = 'learn' | 'listen' | 'try';
-export type View = 'learn' | 'free' | 'progress';
+export type View = 'learn' | 'game' | 'free' | 'progress';
 export type NoteEvent = { type: 'on' | 'off'; note: number; velocity: number; time: number; source: string; channel: number };
 export type LessonStep = { notes: number[]; beats: number; fingers?: number[]; instruction: string; phrase?: number };
 export type Lesson = { id: string; title: string; heading: string; description: string; explanation: string[]; steps: LessonStep[]; kind?: 'song'; credit?: string; rhythm?: boolean; staff?: boolean };

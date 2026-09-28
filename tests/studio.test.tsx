@@ -311,4 +311,41 @@ describe('studio integration with simulated MIDI and audio', () => {
     expect(mockAudio.beat).toHaveBeenCalledTimes(calls);
     expect(result.current.timedRunning).toBe(false);
   });
+  it('routes fresh game presses through normalization without advancing lessons', async () => {
+    const { result } = renderHook(useStudio);
+    await act(async () => result.current.connectMidi());
+    act(() => result.current.changeProfiles([{ ...profile, octaveShift: 1 }]));
+    act(() => result.current.changeView('game'));
+    const receive = vi.fn(); result.current.gameInput.current = receive;
+    act(() => {
+      input.onmidimessage?.({ data: new Uint8Array([0x97, 48, 80]), timeStamp: performance.now() });
+      input.onmidimessage?.({ data: new Uint8Array([0x97, 48, 80]), timeStamp: performance.now() });
+      result.current.screenDown(60, 'overlap');
+    });
+    expect(receive).toHaveBeenCalledTimes(1);
+    expect(receive).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'on', note: 60, channel: 7 }));
+    act(() => input.onmidimessage?.({ data: new Uint8Array([0x97, 48, 0]), timeStamp: performance.now() }));
+    expect(receive).toHaveBeenCalledTimes(1);
+    act(() => result.current.screenUp(60, 'overlap'));
+    expect(receive).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'off', note: 60 }));
+    act(() => strike(48, 7));
+    expect(receive.mock.calls.filter(([event]) => event.type === 'on')).toHaveLength(2);
+    expect(result.current.exercise.index).toBe(0);
+    expect(result.current.saved.completed).toEqual([]);
+  });
+  it('pauses a game on MIDI loss, focus loss and setup without automatically resuming', async () => {
+    const { result } = renderHook(useStudio);
+    await act(async () => result.current.connectMidi());
+    act(() => result.current.changeProfiles([profile]));
+    act(() => result.current.changeView('game'));
+    const pause = vi.fn(); result.current.gamePause.current = pause;
+    act(() => { input.state = 'disconnected'; access.onstatechange?.(); });
+    expect(pause).toHaveBeenCalled(); pause.mockClear();
+    act(() => { input.state = 'connected'; access.onstatechange?.(); });
+    expect(result.current.paused).toBe(true);
+    act(() => window.dispatchEvent(new Event('blur')));
+    expect(pause).toHaveBeenCalled(); pause.mockClear();
+    act(() => result.current.openSetup()); expect(pause).toHaveBeenCalled();
+  });
+
 });

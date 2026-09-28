@@ -4,13 +4,14 @@ Status as of 28 September 2026, version 0.1.0.
 
 ## Automated checks
 
-46 tests pass across three files. The TypeScript check and Vite production build
+61 tests pass across five files. The TypeScript check and Vite production build
 pass. Tests use simulated MIDI ports and mocked audio where appropriate; they are
 not proof of physical sound, latency or light behaviour.
 
 | Area | Coverage |
 | --- | --- |
 | Learning | Correct/wrong notes, fresh repeated presses, note-offs, rhythm timing, transposition, all lessons and songs |
+| Song game | Authored beat spacing, timing windows, repeated notes, misses, all seven songs, count-in, pause/resume, cancellation, normalized MIDI routing and best-score persistence |
 | MIDI | Multiple channels, velocity-zero note-offs, overlapping sources, permission denial, unavailable API, missing devices, disconnect/reconnect |
 | Lights | Confirmation gate, output/channel/range routing, clearing/retry, demo gaps, restart, colour selection and failed note-off |
 | Port lifecycle | Opening a connected Web MIDI output does not clear an active light test |
@@ -36,6 +37,24 @@ from the publishable files succeeded using the local npm cache, followed by all
 46 tests and the production build on Node 25.8.2. This is separate from the Node
 22/24 GitHub CI matrix, which has not yet run remotely.
 
+The Play game was checked at 1280×720 and 390×844. A computer-key press and an
+on-screen piano press each earned a Perfect hit during live falling-note rounds.
+Pause froze song progress, resume continued it, a round reached its results, and
+its best score survived a page reload. Song/speed selection, reset, All notes off,
+and returning to the matching untimed lesson were exercised. Mobile scrolling
+keeps the lanes and piano aligned, with no horizontal document overflow. No
+browser warnings or errors were captured during these checks. New game MIDI
+coverage is simulated; playing this mode with a real LUMI remains to be verified.
+Physical light guidance is not enabled in Play mode.
+
+The sidebar navigation update was checked on desktop and at 390×844: all four
+modes replace the sidebar content, choosing a Play song stays in the game and
+resets an active round, and mobile song selection closes the menu. Play and Free
+play both rendered the same 24-key C4–B5 range and 164px keyboard height at the
+laptop viewport. Falling-note centres aligned with the matching white keys to
+within one pixel. The shared range also follows configured MIDI profiles; this
+change did not include new physical-device acceptance.
+
 All 30 piano samples loaded from localhost (2,012,677 bytes). Fonts and lessons are
 bundled. The app's Content Security Policy restricts runtime connections to the
 local origin (plus the local development WebSocket). A full test with the Mac's
@@ -59,7 +78,7 @@ Gold colour, separate per-key brightness and a fix for premature clearing on
 port-open events did not establish working guidance. The final test was marked
 unavailable. Firmware details and the cause remain unresolved.
 
-Screen highlights and outgoing guidance share the same target list. The code uses
+In the Learn view, screen highlights and outgoing guidance share the same target list. The code uses
 the published factory MIDI handler, with no firmware, custom-program or SysEx
 configuration writes. Do not remove the visual confirmation gate or advertise
 working physical song guidance until it is demonstrated on actual hardware.

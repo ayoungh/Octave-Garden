@@ -30,4 +30,32 @@ export const songs: Lesson[] = [
     explanation: ['Keep your thumb on C and your little finger on G. The theme begins on E with finger 3.', 'Walk up to G, then back down. The second half starts the same way but finishes on C.', 'Listen to the short note near each phrase ending. Try it checks the order of notes; you can add the rhythm once the melody feels comfortable.'],
     steps: phrases([[E, E, F, G, G, F, E, D], [C, C, D, E, [E, 1.5], [D, 0.5], [D, 2]], [E, E, F, G, G, F, E, D], [C, C, D, E, [D, 1.5], [C, 0.5], [C, 2]]]),
   },
+  {
+    id: 'song-au-clair-de-la-lune', kind: 'song', title: 'Au clair de la lune', heading: 'Au clair de la lune',
+    description: 'A short version of the French folk tune using just C, D, and E.',
+    credit: 'Traditional French melody · simplified opening',
+    explanation: ['Rest fingers 1, 2, and 3 on C, D, and E. Begin with three separate presses of C.', 'Let E and D ring for two beats, then return to shorter notes. Lift between repeated notes.', 'This short arrangement repeats the opening melody. Learn one phrase, then enjoy recognising it the second time.'],
+    steps: phrases([[C, C, C, D, [E, 2], [D, 2]], [C, E, D, D, [C, 4]], [C, C, C, D, [E, 2], [D, 2]], [C, E, D, D, [C, 4]]]),
+  },
+  {
+    id: 'song-lightly-row', kind: 'song', title: 'Lightly Row', heading: 'Lightly Row',
+    description: 'Practise small skips and a smooth climb in this short folk melody.',
+    credit: 'Traditional melody · simplified opening',
+    explanation: ['Place one finger on each white key from C to G. Begin on G with your little finger, then skip down to E.', 'The opening pairs G with E, then F with D. Keep your hand relaxed instead of reaching with one finger.', 'The second phrase climbs C–D–E–F–G. Listen for the different ending when the opening returns.'],
+    steps: phrases([[G, E, [E, 2], F, D, [D, 2]], [C, D, E, F, G, G, [G, 2]], [G, E, [E, 2], F, D, [D, 2]], [C, E, G, G, [C, 4]]]),
+  },
+  {
+    id: 'song-jingle-bells', kind: 'song', title: 'Jingle Bells', heading: 'Jingle Bells',
+    description: 'Play the familiar chorus, with repeated E notes and two different endings.',
+    credit: 'James Lord Pierpont · simplified chorus',
+    explanation: ['Start on E with finger 3. Keep all five fingers resting over C–G.', 'Release each repeated E and F. The tune also skips from E up to G, then down to C: use fingers 3, 5, and 1.', 'The two halves begin the same way but end differently. Learn the note order slowly, then try Play mode at 40 or 60 BPM.'],
+    steps: phrases([[E, E, [E, 2], E, E, [E, 2]], [E, G, [C, 1.5], [D, 0.5], [E, 4]], [F, F, [F, 1.5], [F, 0.5], F, E, E, [E, 0.5], [E, 0.5]], [E, D, D, E, [D, 2], [G, 2]], [E, E, [E, 2], E, E, [E, 2]], [E, G, [C, 1.5], [D, 0.5], [E, 4]], [F, F, [F, 1.5], [F, 0.5], F, E, E, [E, 0.5], [E, 0.5]], [G, G, F, D, [C, 4]]]),
+  },
+  {
+    id: 'song-when-the-saints', kind: 'song', title: 'When the Saints Go Marching In', heading: 'When the Saints Go Marching In',
+    description: 'A familiar marching tune with an upward opening and longer landing notes.',
+    credit: 'Traditional melody · simplified rhythm',
+    explanation: ['Keep your thumb on C and little finger on G. Begin C–E–F–G using fingers 1, 3, 4, and 5.', 'Let the long G ring while you count. This version uses a steady, simplified rhythm; start slowly and follow the example.', 'The opening returns three times. Later, watch for repeated notes and practise each phrase separately before playing the whole tune.'],
+    steps: phrases([[C, E, F, [G, 5]], [C, E, F, [G, 5]], [C, E, F, [G, 2], [E, 2], [C, 2], [E, 2], [D, 5]], [E, E, [D, 2], [C, 3], C, [E, 2], [G, 2], G, [F, 3]], [[E, 2], [F, 2], [G, 2], [E, 2], [C, 2], [D, 2], [C, 4]]]),
+  },
 ];

@@ -36,6 +36,8 @@ export function useStudio() {
   const [audio] = useState(() => new PianoAudio());
   const [lights] = useState(() => new LightService());
   const [heldNotes] = useState(() => new HeldNotes());
+  const gameInput = useRef<((event: NoteEvent) => void) | null>(null);
+  const gamePause = useRef<(() => void) | null>(null);
   const onNoteRef = useRef<(event: NoteEvent) => void>(() => {});
   const onDeviceRef = useRef<(lost: boolean) => void>(() => {});
   const [midi] = useState(() => new MidiService(event => onNoteRef.current(event), lost => onDeviceRef.current(lost)));
@@ -74,7 +76,7 @@ export function useStudio() {
     audio.stopDemo(); lights.clear(); setPlaying(false); setDemoIndex(null); setCountIn(null); setTimedRunning(false); timing.current = undefined;
   }, [audio, lights]);
   const silence = useCallback(() => { audio.allOff(); heldNotes.clear(); setHeld([]); lights.clear(); }, [audio, heldNotes, lights]);
-  const allOff = useCallback(() => { stopTransport(); silence(); setBeatOn(false); setPaused(true); }, [stopTransport, silence]);
+  const allOff = useCallback(() => { gamePause.current?.(); stopTransport(); silence(); setBeatOn(false); setPaused(true); }, [stopTransport, silence]);
 
   useEffect(() => { setStorageFailed(!saveState(saved)); }, [saved]);
   useEffect(() => { audio.volume(saved.volume); }, [audio, saved.volume]);
@@ -128,6 +130,10 @@ export function useStudio() {
       else { patch({ devices: savedRef.current.devices.map(profile => profile.inputId === event.source ? { ...profile, low: calibrationNow.low!, high: event.note, calibrated: true } : profile) }); calibrationRef.current = null; setCalibration(null); setCalibrationError(''); setChangedRanges(previous => previous.filter(id => id !== event.source)); lights.invalidate(); }
       return;
     }
+    if (view === 'game') {
+      if (logical && !rangeChanged && !setup && rangeValid) gameInput.current?.(logical);
+      return;
+    }
     if (!logical || rangeChanged || setup || view !== 'learn' || saved.stage !== 'try' || paused || playing || exerciseRef.current.complete || !rangeValid || (rhythm && !timing.current)) return;
     const next = evaluateNote(exerciseRef.current, logical, lesson.steps, root, rhythm ? timing.current : undefined);
     exerciseRef.current = next; setExercise(next);
@@ -143,7 +149,7 @@ export function useStudio() {
   useEffect(() => {
     const keys = 'awsedftgyhujk';
     const down = (event: KeyboardEvent) => {
-      if (view !== 'free' || setup || event.metaKey || event.ctrlKey || event.altKey || event.repeat || (event.target as HTMLElement).matches('input,select,textarea,button')) return;
+      if ((view !== 'free' && view !== 'game') || setup || event.metaKey || event.ctrlKey || event.altKey || event.repeat || (event.target instanceof Element && event.target.matches(view === 'game' ? 'input,select,textarea' : 'input,select,textarea,button'))) return;
       const index = keys.indexOf(event.key.toLowerCase()); if (index < 0) return;
       event.preventDefault(); if (!audio.ready) void enableRef.current();
       onNoteRef.current({ type: 'on', note: root + index, velocity: 0.65, time: performance.now(), source: `screen:typing-${event.code}`, channel: 0 });
@@ -172,7 +178,7 @@ export function useStudio() {
   }, [beatOn, audioStatus, saved.bpm, playing, timedRunning, paused, audio]);
 
   function openLesson(id: string) { stopTransport(); silence(); setPaused(false); setRhythm(false); patch({ lessonId: id, stage: 'learn', step: 0 }); setExercise(newExercise()); setView('learn'); }
-  function changeView(next: View) { stopTransport(); silence(); setPaused(false); setView(next); }
+  function changeView(next: View) { stopTransport(); silence(); setBeatOn(false); setPaused(false); setView(next); }
   function changeStage(stage: Stage) { stopTransport(); silence(); setPaused(false); patch({ stage }); }
   function restart() { stopTransport(); silence(); setExercise(newExercise()); exerciseRef.current = newExercise(); patch({ step: 0 }); setPaused(false); }
   async function demonstrate() {
@@ -227,5 +233,5 @@ export function useStudio() {
   function toggleBeat() { if (!beatOn) { setPaused(false); void enableAudio(); } setBeatOn(v => !v); }
   const nextLesson = lessons[lessons.findIndex(l => l.id === lesson.id) + 1];
   const instruction = exercise.complete ? 'A little practice. Real progress.' : `Play ${noteName(targets[0])} with your right ${['', 'thumb', 'index finger', 'middle finger', 'ring finger', 'little finger'][step.fingers?.[0] ?? 1]}`;
-  return { saved, patch, view, changeView, exercise, lesson, step, root, low, high, rangeValid, rangeChanged, targets, guideTargets, held, setup, openSetup, closeSetup, audioStatus, audioError, enableAudio, restartAudio, testAudio, midiError, connecting, connectMidi, access: midi.access, connectedProfiles, deviceVersion, paused, resume, playing, demoIndex, demonstrate, beatOn, toggleBeat, rhythm, setRhythm: (value: boolean) => { restart(); setRhythm(value); }, countIn, timedRunning, beginRhythm, storageFailed, calibration, calibrate, calibrationError, lastNote, lightTest, testLight, confirmLight, verified: lights.verified, lightingError: lights.error, allLightsVerified, changeProfiles, openLesson, changeStage, restart, allOff, screenDown, screenUp, nextLesson, instruction };
+  return { gameInput, gamePause, silence, gameBeat: (accent: boolean) => audio.beat(accent), saved, patch, view, changeView, exercise, lesson, step, root, low, high, rangeValid, rangeChanged, targets, guideTargets, held, setup, openSetup, closeSetup, audioStatus, audioError, enableAudio, restartAudio, testAudio, midiError, connecting, connectMidi, access: midi.access, connectedProfiles, deviceVersion, paused, resume, playing, demoIndex, demonstrate, beatOn, toggleBeat, rhythm, setRhythm: (value: boolean) => { restart(); setRhythm(value); }, countIn, timedRunning, beginRhythm, storageFailed, calibration, calibrate, calibrationError, lastNote, lightTest, testLight, confirmLight, verified: lights.verified, lightingError: lights.error, allLightsVerified, changeProfiles, openLesson, changeStage, restart, allOff, screenDown, screenUp, nextLesson, instruction };
 }

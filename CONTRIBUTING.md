@@ -20,6 +20,8 @@ Node 22 and 24; physical devices are not attached to CI.
 | `src/lib/lighting.ts` | Experimental factory MIDI lighting and cleanup |
 | `src/lib/audio.ts` | Local sample playback, voices and audio lifecycle |
 | `src/lib/engine.ts` | Note evaluation and lesson progression |
+| `src/lib/game.ts` | Song charts, timing judgments and local game records |
+| `src/useGame.ts` | Game clock, count-in, pause/resume and input bridge |
 | `src/lib/storage.ts` | Versioned local progress and preferences |
 | `src/useStudio.ts` | Coordination of UI, input, audio and lessons |
 | `src/components/` | Keyboard, staff, timeline, setup and progress views |

@@ -44,18 +44,45 @@ Stop the development server before `npm start`; both use port 5184.
 
 - Six lessons: finding C, D and E, five-finger C–G practice, steady beats, an
   original melody, and introductory treble-staff reading.
-- Three beginner songs: **Hot Cross Buns**, **Mary Had a Little Lamb**, and the
-  opening theme of **Ode to Joy**.
+- Seven beginner songs: **Hot Cross Buns**, **Mary Had a Little Lamb**,
+  **Ode to Joy**, **Au clair de la lune**, **Lightly Row**, **Jingle Bells**, and
+  **When the Saints Go Marching In**. Some use shortened themes or simplified rhythms.
 - **Learn → Listen → Try it** stages, note names, finger suggestions and a
   keyboard that highlights the next note.
 - Untimed practice that waits for a fresh correct press, plus adjustable rhythm
   practice starting at 60 BPM.
+- **Play** mode: falling notes, timed hits, streaks and local best scores for all
+  seven songs, with a four-beat count-in and adjustable speed.
 - Free play, demonstration playback, a metronome, volume and local progress.
+
+See [song notes](docs/song-notes.md) for arrangement scope and references.
 
 All initial lessons and songs fit on one 24-key LUMI. The software supports up to
 two inputs, but two-device hardware acceptance remains unverified. Finger numbers
 are suggestions; MIDI does not tell the app which finger you used. Untimed song
 practice checks note order, not how long each note was held.
+
+## Play a song game
+
+The sidebar is the main navigation: each mode shows its own lessons, songs or
+options below the mode tabs. Choose **Play**, pick a song from the sidebar,
+then press **Start song**. On small screens, open the navigation menu to choose
+a mode and song. Choosing a different song stops the current round. Notes fall toward matching piano keys. Press when the
+bottom edge reaches the glowing line. Play uses the same calibrated keyboard
+range and key sizing as Learn and Free play. Start at 40–60 BPM and raise the speed as
+you get comfortable. Use the LUMI, tap the on-screen keys, or play **A S D F G**
+for C D E F G. Release between repeated notes.
+
+Perfect timing earns 100 points; a nearby hit earns 70. Misses and extra presses
+break your streak. Note length is a visual guide; scoring checks the start of the
+note, not how long you hold it. Best scores are saved per song and speed, separately
+from lesson completion. Games pause on focus loss, keyboard setup or a MIDI
+connection change; resume when ready. **All notes off** also pauses the game.
+Use **Learn this song at your pace** to return to the untimed lesson.
+
+Game guidance is on-screen. Experimental physical-key lighting is not enabled in
+this mode. Bluetooth audio latency is especially noticeable in timed play; use
+laptop speakers or wired headphones.
 
 ## Connect a LUMI on macOS
 
@@ -105,6 +132,7 @@ leave physical guidance unverified and continue with on-screen guidance.
 Lessons, samples and fonts are bundled locally. There is no backend, analytics,
 recording, account or remote runtime API. Progress, preferences and device
 selections live in browser local storage, with at most 100 practice summaries.
+Game best scores use the separate `octave-garden.game.v1` storage key.
 Clearing site data removes them; there is currently no export or cloud sync.
 
 The fixed localhost origin and original `first-notes.v1` storage key are retained
